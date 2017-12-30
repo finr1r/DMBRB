@@ -8,6 +8,8 @@ pragma solidity 0.4.19;
  */
  contract Owned {
 
+   event LogChangeOwner(address oldOwner, address newOwner);
+
   // Contract owner
   address public owner;
 
@@ -18,6 +20,24 @@ pragma solidity 0.4.19;
 
   function Owned() public {
     owner = msg.sender;
+  }
+
+  /**
+   * Change owner address.
+   *
+   * @param newOwner - address of new owner
+   *
+   * @returns 'true' if change was successful
+   */
+  function changeOwner(address newOwner)
+    onlyByOwner
+    public
+    returns (bool)
+  {
+    require(newOwner != 0x0);
+    LogChangeOwner(owner, newOwner);
+    owner = newOwner;
+    return true;
   }
 
  }
