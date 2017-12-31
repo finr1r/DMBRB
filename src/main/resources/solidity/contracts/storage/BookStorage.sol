@@ -26,6 +26,7 @@ contract BookStorage is Mortal {
     bool isRentable;
     uint price;
     BookStatus status;
+    uint lastRentDay;   // used only for rent period
   }
 
   Book[] public books;
@@ -50,7 +51,8 @@ contract BookStorage is Mortal {
       author: _author,
       isRentable: _isRentable,
       price: _price,
-      status: BookStatus.NEW_IN_SYSTEM
+      status: BookStatus.NEW_IN_SYSTEM,
+      lastRentDay: uint(now)
     }));
     return true;
   }
@@ -63,12 +65,12 @@ contract BookStorage is Mortal {
    *
    * @return 'true' if book was updated
    */
-  function updateBookStatus(uint id, BookStatus _status)
+  function updateBookStatus(uint id, uint8 _status)
     onlyByOwner
     public
     returns (bool)
   {
-    books[id].status = _status;
+    books[id].status = BookStatus(_status);
     return true;
   }
 
@@ -89,6 +91,13 @@ contract BookStorage is Mortal {
 
   function getIsRentable(uint id) public view returns (bool) {
     return books[id].isRentable;
+  }
+
+  /**
+   * Set the last day of book rent, used only for rent
+   */
+  function setLastRentDay(uint id, uint term) public returns (bool) {
+    books[id].lastRentDay = uint(now) + term;
   }
 
   /**
