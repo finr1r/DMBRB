@@ -1,6 +1,7 @@
 pragma solidity 0.4.19;
 
 import "../common/Mortal.sol";
+import "./IBookStorage.sol";
 
 /**
  * @title This contract contain info about books.
@@ -10,7 +11,7 @@ import "../common/Mortal.sol";
  *  separate the data from business logic of program that make a program more
  *  flexible and allows replace business logic contract without data lossing.
  */
-contract BookStorage is Mortal {
+contract BookStorage is Mortal, IBookStorage {
 
   enum BookStatus {
     RENTED,   // customer rent the book

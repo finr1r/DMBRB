@@ -3,6 +3,7 @@ pragma solidity 0.4.19;
 import "../common/Mortal.sol";
 import "../storage/BookStorage.sol";
 import "../lib/SafeMath.sol";
+import "./IBookController.sol";
 
 /**
  * @title Contract that allow customers to buy and rent books.
@@ -12,13 +13,14 @@ import "../lib/SafeMath.sol";
  *  This contract only manipulates the data that stored in the storage so it can
  *  be replaced by a new better contract without losing data.
  */
-contract BookController is Mortal {
+contract BookController is Mortal, IBookController {
 
   using SafeMath for uint;
 
   event LogChangeBookStorage(address oldBookStorage, address newBookStorage);
   event LogBuyBook(address indexed _by, uint _id, uint _price);
   event LogRentBook(address indexed _by, uint _id, uint _price, uint _term);
+  event LogBookReturn(address indexed _by, uint _id, uint _time);
 
   // address of the contract storage
   BookStorage bookStorage;
@@ -29,7 +31,12 @@ contract BookController is Mortal {
   }
 
   modifier bookShouldBeAvailabel(uint id) {
-    require(bookStorage.getStatus(id) != 0 && bookStorage.getStatus(id) != 1);
+    require(bookStorage.getStatus(id) != 0 || bookStorage.getStatus(id) != 1);
+    _;
+  }
+
+  modifier bookShouldBeUnavailabel(uint id) {
+    require(bookStorage.getStatus(id) == 0 || bookStorage.getStatus(id) == 1);
     _;
   }
 
@@ -120,7 +127,7 @@ contract BookController is Mortal {
 
       return true;
     } else {
-      // if money not enoght - return money and cancel the transaction
+      // if money not enough - return money and cancel the transaction
       msg.sender.transfer(msg.value);
       return false;
     }
