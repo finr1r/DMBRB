@@ -58,6 +58,7 @@ contract BookController is Mortal, IBookController {
     public
     returns (bool)
   {
+    require(address(_bookStorage) != 0x0);
     LogChangeBookStorage(bookStorage, _bookStorage);
     bookStorage = _bookStorage;
     return true;
@@ -131,6 +132,34 @@ contract BookController is Mortal, IBookController {
       msg.sender.transfer(msg.value);
       return false;
     }
+  }
+
+  /**
+   * Allows to return the book
+   *
+   * @param id - the ID of the book
+   *
+   * @return 'true' if book was returned
+   */
+  function returnBook(uint id, bool isEarlyReturn)
+    bookShouldExists(id)
+    bookShouldBeUnavailabel(id)
+    external
+    returns (bool)
+  {
+    if(isEarlyReturn) {
+      bookStorage.updateBookStatus(id, 3);
+    } else {
+      bookStorage.updateBookStatus(id, 2);
+    }
+  }
+
+  /**
+   * Contract cannot store money or execute another functions throught fallback
+   * function.
+   */
+  function() public {
+    revert();
   }
 
 }
