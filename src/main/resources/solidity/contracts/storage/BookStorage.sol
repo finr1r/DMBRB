@@ -32,6 +32,13 @@ contract BookStorage is Mortal, IBookStorage {
 
   Book[] public books;
 
+  // map of the customers that can withdraw money
+  mapping (address => uint) public pendingWithdrawals;
+
+  // map of the customers that should pay their debt
+  mapping (address => uint) public debtors;
+
+
   /**
    * This function add new book to the array.
    *
@@ -67,7 +74,6 @@ contract BookStorage is Mortal, IBookStorage {
    * @return 'true' if book was updated
    */
   function updateBookStatus(uint id, uint8 _status)
-    onlyByOwner
     public
     returns (bool)
   {
@@ -75,9 +81,6 @@ contract BookStorage is Mortal, IBookStorage {
     return true;
   }
 
-  /**
-   * Return the size of array
-   */
   function getSize() public view returns (uint) {
     return books.length;
   }
@@ -94,18 +97,34 @@ contract BookStorage is Mortal, IBookStorage {
     return books[id].isRentable;
   }
 
-  /**
-   * Set the last day of book rent, used only for rent
-   */
-  function setLastRentDay(uint id, uint term) public returns (bool) {
+  function getLastRentDay(uint id) public view returns (uint) {
+      return books[id].lastRentDay;
+  }
+
+  function setLastRentDay(uint id, uint term) public {
     books[id].lastRentDay = uint(now) + term;
   }
 
+  function getPendingWithdrawals(address _sender) public view returns (uint) {
+      return pendingWithdrawals[_sender];
+  }
+
+  function setPendingWithdrawals(address _sender, uint _sum) public {
+      pendingWithdrawals[_sender] = _sum;
+  }
+
+  function getDebtor(address _sender) public view returns (uint) {
+      return debtors[_sender];
+  }
+
+  function setDebtor(address _sender, uint amount) public {
+      debtors[_sender] = amount;
+  }
+
   /**
-   * Contract cannot store money or execute another functions
-   * (At least throught fallback function).
+   * Contract cannot obtain the ether.
    */
-  function() public {
+  function() public payable {
     revert();
   }
 

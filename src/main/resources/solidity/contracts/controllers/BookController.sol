@@ -1,7 +1,6 @@
 pragma solidity 0.4.19;
 
 import "../common/Mortal.sol";
-import "../storage/BookStorage.sol";
 import "../lib/SafeMath.sol";
 import "./IBookController.sol";
 
@@ -17,13 +16,14 @@ contract BookController is Mortal, IBookController {
 
   using SafeMath for uint;
 
-  event LogChangeBookStorage(address oldBookStorage, address newBookStorage);
-  event LogBuyBook(address indexed _by, uint _id, uint _price);
-  event LogRentBook(address indexed _by, uint _id, uint _price, uint _term);
-  event LogBookReturn(address indexed _by, uint _id, uint _time);
+  event LogChangeBookStorage(address _oldBookStorage, address _newBookStorage);
+  event LogBuyBook(address indexed _sender, uint _id, uint _price);
+  event LogRentBook(address indexed _sender, uint _id, uint _price, uint _term);
+  event LogBookReturn(address indexed _sender, uint _id, uint _time);
+  event LogEtherReceived(address indexed _sender, uint _value);
 
   // address of the contract storage
-  BookStorage bookStorage;
+  BookStorage public bookStorage;
 
   modifier bookShouldExists(uint id) {
     require(bookStorage.getSize() >= id.add(1));
@@ -31,7 +31,7 @@ contract BookController is Mortal, IBookController {
   }
 
   modifier bookShouldBeAvailabel(uint id) {
-    require(bookStorage.getStatus(id) != 0 || bookStorage.getStatus(id) != 1);
+    require(bookStorage.getStatus(id) != 0 && bookStorage.getStatus(id) != 1);
     _;
   }
 
@@ -40,10 +40,20 @@ contract BookController is Mortal, IBookController {
     _;
   }
 
+  modifier senderShouldNotBeDebtor() {
+    require(bookStorage.getDebtor(msg.sender) == 0);
+    _;
+  }
+
+  modifier senderShouldBeDebtor() {
+    require(bookStorage.getDebtor(msg.sender) > 0);
+    _;
+  }
+
+
   function BookController(BookStorage _bookStorage) public {
     require(address(_bookStorage) != 0x0);
     bookStorage = _bookStorage;
-    owner = msg.sender;
   }
 
   /**
@@ -72,6 +82,7 @@ contract BookController is Mortal, IBookController {
    * @return 'true' if buying was success, 'false' otherwise
    */
   function buyBook(uint id)
+    senderShouldNotBeDebtor
     bookShouldExists(id)
     bookShouldBeAvailabel(id)
     external
@@ -79,27 +90,30 @@ contract BookController is Mortal, IBookController {
     returns (bool)
   {
     uint bookPrice = bookStorage.getPrice(id);
+    uint pendingMoney = bookStorage.getPendingWithdrawals(msg.sender);
+    uint moneyOfSender = msg.value.add(pendingMoney);
 
-    // if buyer sent less money than necessary - finish transaction
-    // continue a transaction if money more/equal necessary sum
-    if(msg.value >= bookPrice) {
-      LogBuyBook(msg.sender, id, bookPrice);
+    if(moneyOfSender >= bookPrice) {
       bookStorage.updateBookStatus(id, 1);
 
-      // if the client sent more money than necessary - return the rest
-      uint amount = msg.value.sub(bookPrice);
-      msg.sender.transfer(amount);
+      // if the buyer sent more money than necessary - put the rest into the map
+      uint amount = moneyOfSender.sub(bookPrice);
+      bookStorage.setPendingWithdrawals(msg.sender, amount);
 
+      LogBuyBook(msg.sender, id, bookPrice);
       return true;
     } else {
-      // if money not enoght - return money and cancel the transaction
-      msg.sender.transfer(msg.value);
+      // if money doesn't enough - put money into map, the customer can withdraw
+      // it or leave in system for the next purchases
+      bookStorage.setPendingWithdrawals(msg.sender, moneyOfSender);
       return false;
     }
   }
 
   /**
-   * Allows rent the book
+   * Allows rent the book.
+   *
+   * @notice the book rent period cannot be less than 14 days.
    *
    * @param id - the ID of chosen book
    * @param term - the period of the rent in seconds
@@ -107,6 +121,7 @@ contract BookController is Mortal, IBookController {
    * @return 'true' if book was rented, 'false' otherwise
    */
   function rentBook(uint id, uint term)
+    senderShouldNotBeDebtor
     bookShouldExists(id)
     bookShouldBeAvailabel(id)
     external
@@ -116,22 +131,56 @@ contract BookController is Mortal, IBookController {
     require(bookStorage.getIsRentable(id));
     uint termInDays = (term.div(86400)).add(1);
 
-    uint payment = (bookStorage.getPrice(id).div(100)).mul(termInDays);
-    if(msg.value >= payment) {
-      LogRentBook(msg.sender, id, payment, termInDays);
+    assert(termInDays >= 14);
+
+    uint payment = (bookStorage.getPrice(id).div(150)).mul(termInDays);
+    uint pendingMoney = bookStorage.getPendingWithdrawals(msg.sender);
+    uint moneyOfSender = msg.value.add(pendingMoney);
+
+    if(moneyOfSender >= payment) {
       bookStorage.updateBookStatus(id, 0);
       bookStorage.setLastRentDay(id, term);
 
       // if the client sent more money than necessary - return the rest
-      uint amount = msg.value.sub(payment);
-      msg.sender.transfer(amount);
+      uint amount = moneyOfSender.sub(payment);
+      bookStorage.setPendingWithdrawals(msg.sender, amount);
 
+      LogRentBook(msg.sender, id, payment, termInDays);
       return true;
     } else {
-      // if money not enough - return money and cancel the transaction
-      msg.sender.transfer(msg.value);
+      // if money not enough - put money into the map
+      bookStorage.setPendingWithdrawals(msg.sender, moneyOfSender);
       return false;
     }
+  }
+
+  /**
+   * Return book early than last day of rent
+   *
+   * @param id - the ID of the book
+   *
+   * @return 'true' if return operation was success
+   */
+  function bookEarlyReturn(uint id)
+    bookShouldExists(id)
+    bookShouldBeUnavailabel(id)
+    external
+    returns (bool)
+  {
+    require(uint(bookStorage.getLastRentDay(id)) >= uint(now));
+    bookStorage.updateBookStatus(id, 3);
+
+    // the money for days that left to the end of the rent period should be returned
+    uint lastRentDay = bookStorage.getLastRentDay(id);
+    uint leftDays = (uint(lastRentDay).sub(uint(now))).div(86400);
+
+    uint amount = (bookStorage.getPrice(id).div(150)).mul(leftDays);
+    uint pendingMoney = bookStorage.getPendingWithdrawals(msg.sender);
+    uint amountToReturn = pendingMoney.add(amount);
+    bookStorage.setPendingWithdrawals(msg.sender, amountToReturn);
+
+    LogBookReturn(msg.sender, id, uint(now));
+    return true;
   }
 
   /**
@@ -141,25 +190,80 @@ contract BookController is Mortal, IBookController {
    *
    * @return 'true' if book was returned
    */
-  function returnBook(uint id, bool isEarlyReturn)
+  function bookReturn(uint id)
     bookShouldExists(id)
     bookShouldBeUnavailabel(id)
     external
     returns (bool)
   {
-    if(isEarlyReturn) {
-      bookStorage.updateBookStatus(id, 3);
+    require(uint(now) >= uint(bookStorage.getLastRentDay(id)));
+    bookStorage.updateBookStatus(id, 2);
+
+    // if customer return book later than the last day of rent then the customer
+    // must pay for these days
+    uint lastRentDay = bookStorage.getLastRentDay(id);
+    uint penaltyDays = (uint(now).sub(uint(lastRentDay))).div(86400);
+    if(penaltyDays > 0) {
+      uint penaltyMoney = (bookStorage.getPrice(id).div(150)).mul(penaltyDays);
+      uint pendingMoney = bookStorage.getPendingWithdrawals(msg.sender);
+
+      // if money enough - just substract the necessary sum from pendingWithdrawals,
+      // else - write to the debtors map.
+      if(pendingMoney >= penaltyMoney) {
+        bookStorage.setPendingWithdrawals(msg.sender, pendingMoney.sub(penaltyMoney));
+      } else {
+        uint amount = bookStorage.getPendingWithdrawals(msg.sender);
+        uint penaltyMoneyLeft = penaltyMoney.sub(amount);
+        bookStorage.setPendingWithdrawals(msg.sender, 0);
+        bookStorage.setDebtor(msg.sender, penaltyMoneyLeft);
+      }
+    }
+
+    LogBookReturn(msg.sender, id, uint(now));
+    return true;
+  }
+
+  /**
+   * Allows clients to pay a debt
+   *
+   * @return 'true' if debt was paid, 'false' otherwise
+   */
+  function payDebt()
+    senderShouldBeDebtor
+    external
+    payable
+    returns (bool)
+  {
+    uint penaltyMoney = bookStorage.getDebtor(msg.sender);
+    if(msg.value >= penaltyMoney) {
+      uint extraMoney = msg.value.sub(penaltyMoney);
+      bookStorage.setDebtor(msg.sender, 0);
+      bookStorage.setPendingWithdrawals(msg.sender, extraMoney);
+
+      return true;
     } else {
-      bookStorage.updateBookStatus(id, 2);
+      uint amountToPay = penaltyMoney.sub(msg.value);
+      bookStorage.setDebtor(msg.sender, amountToPay);
+
+      return false;
     }
   }
 
   /**
-   * Contract cannot store money or execute another functions throught fallback
-   * function.
+   * Allows customers to withdraw their money.
    */
-  function() public {
-    revert();
+  function withdraw()
+    external
+    returns (bool)
+  {
+    uint amount = bookStorage.getPendingWithdrawals(msg.sender);
+    bookStorage.setPendingWithdrawals(msg.sender, 0);
+    msg.sender.transfer(amount);
+  }
+
+
+  function() public payable {
+    LogEtherReceived(msg.sender, msg.value);
   }
 
 }

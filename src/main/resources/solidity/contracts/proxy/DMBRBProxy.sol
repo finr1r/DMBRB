@@ -14,14 +14,10 @@ import "./IDMBRBProxy.sol";
  */
 contract DMBRBProxy is Mortal, IDMBRBProxy {
 
-  event LogUpdateContract(address indexed oldContract, address indexed newContract);
+  event LogUpdateContract(address _oldContract, address _newContract);
 
   // actual contract address
   address public activeContract;
-
-  function DMBRBProxy() public {
-    owner = msg.sender;
-  }
 
   /**
    * This function updates the old contract address with new better.
@@ -42,10 +38,9 @@ contract DMBRBProxy is Mortal, IDMBRBProxy {
   }
 
   /**
-   * Contract cannot store money or execute another functions throught fallback
-   * function.
+   * Contract cannot obtain money.
    */
-  function() public {
+  function() public payable {
     revert();
   }
 
