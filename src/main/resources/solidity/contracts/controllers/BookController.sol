@@ -23,7 +23,7 @@ contract BookController is Mortal, IBookController {
   event LogEtherReceived(address indexed _sender, uint _value);
 
   // address of the contract storage
-  BookStorage public bookStorage;
+  IBookStorage public bookStorage;
 
   modifier bookShouldExists(uint id) {
     require(bookStorage.getSize() >= id.add(1));
@@ -35,8 +35,8 @@ contract BookController is Mortal, IBookController {
     _;
   }
 
-  modifier bookShouldBeUnavailabel(uint id) {
-    require(bookStorage.getStatus(id) == 0 || bookStorage.getStatus(id) == 1);
+  modifier bookShouldBeRented(uint id) {
+    require(bookStorage.getStatus(id) == 0);
     _;
   }
 
@@ -51,7 +51,7 @@ contract BookController is Mortal, IBookController {
   }
 
 
-  function BookController(BookStorage _bookStorage) public {
+  function BookController(IBookStorage _bookStorage) public {
     require(address(_bookStorage) != 0x0);
     bookStorage = _bookStorage;
   }
@@ -63,7 +63,7 @@ contract BookController is Mortal, IBookController {
    *
    * @return 'true' if operation was success
    */
-  function changeBookStorage(BookStorage _bookStorage)
+  function changeBookStorage(IBookStorage _bookStorage)
     onlyByOwner
     public
     returns (bool)
@@ -163,7 +163,7 @@ contract BookController is Mortal, IBookController {
    */
   function bookEarlyReturn(uint id)
     bookShouldExists(id)
-    bookShouldBeUnavailabel(id)
+    bookShouldBeRented(id)
     external
     returns (bool)
   {
@@ -192,7 +192,7 @@ contract BookController is Mortal, IBookController {
    */
   function bookReturn(uint id)
     bookShouldExists(id)
-    bookShouldBeUnavailabel(id)
+    bookShouldBeRented(id)
     external
     returns (bool)
   {
@@ -235,6 +235,7 @@ contract BookController is Mortal, IBookController {
     returns (bool)
   {
     uint penaltyMoney = bookStorage.getDebtor(msg.sender);
+
     if(msg.value >= penaltyMoney) {
       uint extraMoney = msg.value.sub(penaltyMoney);
       bookStorage.setDebtor(msg.sender, 0);

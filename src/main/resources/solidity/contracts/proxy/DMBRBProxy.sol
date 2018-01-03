@@ -26,7 +26,7 @@ contract DMBRBProxy is Mortal, IDMBRBProxy {
    *
    * @return 'true' if address of contract was updated
    */
-  function updateContract(address newContract)
+  function updateContractAddress(address newContract)
     onlyByOwner
     public
     returns (bool)
