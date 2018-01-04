@@ -24,7 +24,7 @@ public class DMBRBProxyTest {
 	private static final String BALANCE = "1000000000000000000000";
 	
 	private static Process testrpc;
-	private static String newContractAddress;
+	private static String secondContractAddress;
 	
 	private Web3j web3j;
 	private Credentials credentials;
@@ -73,7 +73,7 @@ public class DMBRBProxyTest {
 				DMBRBProxy.GAS_LIMIT
 			).send();
 		
-		newContractAddress = BookController.deploy(
+		secondContractAddress = BookController.deploy(
 				web3j, 
 				credentials, 
 				BookController.GAS_PRICE, 
@@ -125,12 +125,14 @@ public class DMBRBProxyTest {
 	public void testUpdateContractAddress() throws Exception {
 		Address contractAddress = proxy.activeContract().send();		
 		
-		proxy.updateContractAddress(new Address(newContractAddress)).send();
+		proxy.updateContractAddress(new Address(secondContractAddress)).send();
 		
 		Address newContractAddress = proxy.activeContract().send();
 		
-		assertThat(contractAddress.getValue().toString()).as("Should have correct contract address").isEqualTo(bookController.getContractAddress());
-		assertThat(newContractAddress.getValue().toString()).as("Should have correct contract address").isEqualTo(newContractAddress);
+		assertThat(contractAddress.getValue().toString()).as("Should have correct contract address")
+			.isEqualTo(bookController.getContractAddress());
+		assertThat(newContractAddress.getValue().toString()).as("Should have correct contract address")
+			.isEqualTo(newContractAddress.getValue().toString());
 	}
 	
 	@Test(expected=RuntimeException.class)
@@ -138,7 +140,7 @@ public class DMBRBProxyTest {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
 		proxy.changeOwner(new Address(secondCredentials.getAddress())).send();
 		
-		proxy.updateContractAddress(new Address(newContractAddress)).send();
+		proxy.updateContractAddress(new Address(secondContractAddress)).send();
 	}
 	
 	@Test(expected=RuntimeException.class)

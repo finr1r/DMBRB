@@ -34,8 +34,8 @@ public class BookStorageTest {
 	private static final boolean BOOK_RENTED_2 = false;
 	private static final long BOOK_PRICE_2 = 4000;
 	private static final byte DEFAULT_BOOK_STATUS = 4;
-	private static final byte RENTED_BOOK_STATUS = 0;	// means that the book status is 'RENTED'
-	private static final byte BUYED_BOOK_STATUS = 1;	// means that the book status is 'BUYED'
+	private static final byte RENTED_BOOK_STATUS = 0;
+	private static final byte BUYED_BOOK_STATUS = 1;
 	private static final long NUMBER_OF_BOOKS = 2;
 	private static final int PENDING_WITHDRAWALS_SUM = 228;
 	private static final int DEBTORS_SUM = 322;
@@ -101,24 +101,24 @@ public class BookStorageTest {
 		
 		Address newOwner = bookStorage.owner().send();
 		
-		assertThat(owner.getValue().toString()).as("Should have correct owner address before changing").isEqualTo(credentials.getAddress());
-		assertThat(newOwner.getValue().toString()).as("Should have correct owner address after changing").isEqualTo(secondCredentials.getAddress());
+		assertThat(owner.getValue().toString()).as("Should have correct owner address before changing")
+			.isEqualTo(credentials.getAddress());
+		assertThat(newOwner.getValue().toString()).as("Should have correct owner address after changing")
+			.isEqualTo(secondCredentials.getAddress());
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testChangeOwnerAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);		
 		bookStorage.changeOwner(new Address(secondCredentials.getAddress())).send();
-		
-		// must throw exception
+
 		bookStorage.changeOwner(new Address(credentials.getAddress())).send();
 	}
 	
 	@Test(expected=IndexOutOfBoundsException.class)
 	public void testKill() throws Exception {
 		bookStorage.kill().send();		
-		
-		// must throw an exception
+
 		bookStorage.books(new Uint256(0)).send();
 	}
 	
@@ -126,8 +126,7 @@ public class BookStorageTest {
 	public void testKillAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);		
 		bookStorage.changeOwner(new Address(secondCredentials.getAddress())).send();
-		
-		// must throw an exception
+
 		bookStorage.kill().send();
 	}
 	
@@ -142,7 +141,7 @@ public class BookStorageTest {
 		assertThat(firstBook.getValue4().getValue().longValue()).as("Should have correct price").isEqualTo(BOOK_PRICE_1);
 		assertThat(firstBook.getValue5().getValue().byteValue()).as("Should have correct status").isEqualTo(DEFAULT_BOOK_STATUS);
 		
-		assertThat(secondBook.getValue1().getValue().toString()).as("Should have correct owner address before changing").isEqualTo(BOOK_TITLE_2);
+		assertThat(secondBook.getValue1().getValue().toString()).as("Should have correct book title").isEqualTo(BOOK_TITLE_2);
 		assertThat(secondBook.getValue2().getValue().toString()).as("Should have correct book author").isEqualTo(BOOK_AUTHOR_2);
 		assertThat(secondBook.getValue3().getValue().booleanValue()).as("Should have correct isRented field value").isFalse();
 		assertThat(secondBook.getValue4().getValue().longValue()).as("Should have correct price").isEqualTo(BOOK_PRICE_2);
@@ -153,8 +152,7 @@ public class BookStorageTest {
 	public void testAddBookAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);		
 		bookStorage.changeOwner(new Address(secondCredentials.getAddress())).send();
-		
-		// must throw exception
+
 		bookStorage.addBook(
 				new Utf8String(BOOK_TITLE_1),
 				new Utf8String(BOOK_AUTHOR_1), 
@@ -205,7 +203,8 @@ public class BookStorageTest {
 			).send();
 		
 		Uint256 pendingWithdrawalSum = bookStorage.getPendingWithdrawals(new Address(credentials.getAddress())).send();
-		assertThat(pendingWithdrawalSum.getValue().longValue()).as("Should have correct withdrawal sum").isEqualTo(PENDING_WITHDRAWALS_SUM);
+		assertThat(pendingWithdrawalSum.getValue().longValue()).as("Should have correct withdrawal sum")
+			.isEqualTo(PENDING_WITHDRAWALS_SUM);
 	}
 	
 	@Test

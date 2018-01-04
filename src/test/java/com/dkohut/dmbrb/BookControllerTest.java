@@ -113,16 +113,17 @@ public class BookControllerTest {
 		
 		Address newOwner = bookController.owner().send();
 		
-		assertThat(owner.getValue().toString()).as("Should have correct owner address before changing").isEqualTo(credentials.getAddress());
-		assertThat(newOwner.getValue().toString()).as("Should have correct owner address after changing").isEqualTo(secondCredentials.getAddress());
+		assertThat(owner.getValue().toString()).as("Should have correct owner address before changing")
+			.isEqualTo(credentials.getAddress());
+		assertThat(newOwner.getValue().toString()).as("Should have correct owner address after changing")
+			.isEqualTo(secondCredentials.getAddress());
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testChangeOwnerException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
 		bookController.changeOwner(new Address(secondCredentials.getAddress())).send();
-		
-		// must throw exception
+
 		bookController.changeOwner(new Address(credentials.getAddress())).send();
 	}
 	
@@ -130,7 +131,6 @@ public class BookControllerTest {
 	public void testKill() throws Exception {
 		bookController.kill().send();
 		
-		// must throw an exception
 		Address bookStorageAddress = bookController.bookStorage().send();
 		assertThat(bookStorageAddress.getValue().toString()).isNull();
 	}
@@ -139,8 +139,7 @@ public class BookControllerTest {
 	public void testKillAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
 		bookController.changeOwner(new Address(secondCredentials.getAddress())).send();
-		
-		// must throw an exception
+
 		bookController.kill().send();
 	}
 	
@@ -175,14 +174,12 @@ public class BookControllerTest {
 				BookStorage.GAS_PRICE, 
 				BookStorage.GAS_LIMIT
 			).send();
-		
-		// must throw an exception
+
 		bookController.changeBookStorage(new Address(secondBookStorage.getContractAddress())).send();
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testChangeBookStorageIncorrectAddressException() throws Exception {
-		// must throw an exception
 		bookController.changeBookStorage(new Address("0x0")).send();
 	}
 	
@@ -203,8 +200,7 @@ public class BookControllerTest {
 				new Address(credentials.getAddress()), 
 				new Uint256(DEBT_AMOUNT)
 			).send();
-		
-		// must throw an exception
+
 		bookController.buyBook(
 				new Uint256(BOOK_INDEX_1), 
 				BigInteger.valueOf(BOOK_PRICE_1)
@@ -213,7 +209,6 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testBuyBookIsNotExistsException() throws Exception {
-		// must throw an exception
 		bookController.buyBook(
 				new Uint256(NON_EXISTING_BOOK_INDEX), 
 				BigInteger.valueOf(BOOK_PRICE_1)
@@ -226,8 +221,7 @@ public class BookControllerTest {
 				new Uint256(BOOK_INDEX_1), 
 				new Uint8(RENTED_BOOK_STATUS)
 			).send();
-		
-		// must throw an exception
+
 		bookController.buyBook(
 				new Uint256(BOOK_INDEX_1), 
 				BigInteger.valueOf(BOOK_PRICE_1)
@@ -252,8 +246,7 @@ public class BookControllerTest {
 				new Address(credentials.getAddress()), 
 				new Uint256(DEBT_AMOUNT)
 			).send();
-		
-		// must throw an exception
+
 		bookController.rentBook(
 				new Uint256(BOOK_INDEX_1), 
 				new Uint256(RENT_PERIOD), 
@@ -263,7 +256,6 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testRentBookBookIsNotExistsException() throws Exception {
-		// must throw an exception
 		bookController.rentBook(
 				new Uint256(NON_EXISTING_BOOK_INDEX), 
 				new Uint256(RENT_PERIOD), 
@@ -277,8 +269,7 @@ public class BookControllerTest {
 				new Uint256(BOOK_INDEX_1), 
 				new Uint8(BUYED_BOOK_STATUS)
 			).send();
-		
-		// must throw an exception
+
 		bookController.rentBook(
 				new Uint256(BOOK_INDEX_1), 
 				new Uint256(RENT_PERIOD), 
@@ -288,7 +279,6 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testRentBookCannotBeRentedException() throws Exception {
-		// must throw an exception
 		bookController.rentBook(
 				new Uint256(BOOK_INDEX_2), 
 				new Uint256(RENT_PERIOD), 
@@ -298,7 +288,6 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testRentBookLowRentPeriodException() throws Exception {
-		// must throw an exception
 		bookController.rentBook(
 				new Uint256(BOOK_INDEX_1), 
 				new Uint256(LOW_RENT_PERIOD), 
@@ -322,13 +311,11 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testBookEarlyReturnBookIsNotExistsException() throws Exception {
-		// must throw an exception
 		bookController.bookEarlyReturn(new Uint256(NON_EXISTING_BOOK_INDEX)).send();
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testBookEarlyReturnBookIsNotRentedException() throws Exception {
-		// must throw an exception
 		bookController.bookEarlyReturn(new Uint256(BOOK_INDEX_1)).send();
 	}
 	
@@ -352,13 +339,11 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testBookReturnIsNotExistsException() throws Exception {
-		// must throw an exception
 		bookController.bookReturn(new Uint256(NON_EXISTING_BOOK_INDEX)).send();
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testBookReturnIsNotRentedException() throws Exception {
-		// must throw an exception
 		bookController.bookReturn(new Uint256(BOOK_INDEX_1)).send();
 	}
 	
@@ -380,7 +365,6 @@ public class BookControllerTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void testPayDebtSenderIsNotDebtorException() throws Exception {
-		// must throw an exception
 		bookController.payDebt(BigInteger.valueOf(DEBT_AMOUNT)).send();
 	}
 	
