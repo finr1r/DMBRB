@@ -18,7 +18,7 @@ contract Storage is Owned {
 
     IAccessManager public manager;
 
-    modifier onlyAllowed(bytes32 _role) {
+    modifier onlyByAllowed(bytes32 _role) {
         require(manager.isAllowed(msg.sender, _role));
         _;
     }

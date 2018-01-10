@@ -108,6 +108,7 @@ library StorageInterface {
       Bool isRentable;
       UInt price;
       UInt status;
+      Address owner;
     }
 
     bytes32 constant SET_IDENTIFIER = "set";
@@ -292,6 +293,7 @@ library StorageInterface {
       init(self.isRentable, keccak256(_id, 'isRented'));
       init(self.price, keccak256(_id, 'price'));
       init(self.status, keccak256(_id, 'status'));
+      init(self.owner, keccak256(_id, 'owner'));
     }
 
     function init(Set storage self, bytes32 _id) internal {
@@ -690,12 +692,13 @@ library StorageInterface {
 
     /** `get` operation */
 
-    function get(Config storage self, Book storage item, bytes32 _key) internal constant returns (bytes32[2] res, bool res1, uint[2] res2) {
+    function get(Config storage self, Book storage item, bytes32 _key) internal constant returns (bytes32[2] res, bool res1, uint[2] res2, address owner) {
         res[0] = get(self, item.title, _key);
         res[1] = get(self, item.author, _key);
         res1 = get(self, item.isRentable, _key);
         res2[0] = get(self, item.price, _key);
         res2[1] = get(self, item.status, _key);
+        owner = get(self, item.owner, _key);
     }
 
     function get(Config storage self, UInt storage item) internal constant returns(uint) {
@@ -969,11 +972,6 @@ library StorageInterface {
     function count(Config storage self, AddressOrderedSetMapping storage item, bytes32 _key) internal constant returns(uint) {
         return count(self, item.innerMapping, _key);
     }
-
-    // function get(Config storage self, Book storage item, bytes32 _key) internal constant returns (bytes32[] result) {
-    //     result[0] = self.store.getBytes32(self.crate, keccak256(item.title.id, ));
-    //     result[1] = self.store.getBytes32(self.crate, keccak256(item.author.id, ));
-    // }
 
     function get(Config storage self, Set storage item) internal constant returns(bytes32[] result) {
         result = get(self, item, SET_IDENTIFIER);
