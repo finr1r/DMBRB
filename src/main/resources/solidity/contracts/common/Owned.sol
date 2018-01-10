@@ -1,43 +1,33 @@
 pragma solidity 0.4.18;
 
 /**
- * @title Contract that checking whether sender is owner of the contract.
+ * @title Owned is a contract that specifies some operations for the owner.
  *
- * @dev This contract contains modifiers and functions that makes a check whether
- *  sender is a owner. This contract is a first part of access managing.
+ * @dev There are some operations that should be executed only by the owner.
+ *  Goal this contract is to define such operations.
  */
- contract Owned {
+contract Owned {
 
-   event LogChangeOwner(address oldOwner, address newOwner);
+    address public owner;
 
-  // Contract owner
-  address public owner;
+    event LogChangeOwner(address indexed previousOwner, address indexed newOwner);
 
-  modifier onlyByOwner {
-    require(msg.sender == owner);
-    _;
-  }
+    function Owned() public {
+        owner = msg.sender;
+    }
 
-  function Owned() public {
-    owner = msg.sender;
-  }
+    modifier onlyByOwner {
+        require(msg.sender == owner);
+        _;
+    }
 
-  /**
-   * Change owner address.
-   *
-   * @param newOwner - address of new owner
-   *
-   * @return 'true' if change was successful
-   */
-  function changeOwner(address newOwner)
-    onlyByOwner
-    public
-    returns (bool)
-  {
-    require(newOwner != 0x0);
-    LogChangeOwner(owner, newOwner);
-    owner = newOwner;
-    return true;
-  }
-
- }
+    /**
+     * @dev Allows to change the owner of the contract.
+     */
+    function changeOwner(address newOwner) public returns (bool) {
+        require(newOwner != 0x0);
+        LogChangeOwner(owner, newOwner);
+        owner = newOwner;
+        return true;
+    }
+}
