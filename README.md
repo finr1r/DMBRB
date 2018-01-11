@@ -28,8 +28,6 @@ Such as all data organized in _"crates"_, the crates-contracts were created for 
 Proxy contract already keeping not only the address of controller but also the addresses of _"crates"_ and __Storage__ contract.
 
 ## How to test?
-__Tests for the upgraded version of the program not yet ready !__
-
 You should have [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html), [Gradle](https://gradle.org/install/), 
 [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Testrpc](https://www.npmjs.com/package/ethereumjs-testrpc).
 After installation, you need to clone this repository:
