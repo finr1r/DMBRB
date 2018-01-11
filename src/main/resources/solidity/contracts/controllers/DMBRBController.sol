@@ -1,11 +1,11 @@
 pragma solidity 0.4.18;
 
 import "../common/Mortal.sol";
+import "../common/Validator.sol";
 import "../crates/IWithdrawalsCrate.sol";
 import "../crates/IBooksCrate.sol";
 import "../crates/IDebtorsCrate.sol";
 import "../lib/SafeMath.sol";
-import "../common/Validator.sol";
 import "./IDMBRBController.sol";
 
 /**
@@ -29,7 +29,6 @@ contract DMBRBController is IDMBRBController, Mortal, Validator {
 
     uint public TOTAL_TERM_IN_DAYS = 150;
     uint public SECONDS_IN_DAY = 86400;
-    uint public ADDITIONAL_DAY = 1;
 
 
     event LogChangeCrateAddress(bytes32 contractName, address oldAddress, address newAddress);
@@ -174,7 +173,7 @@ contract DMBRBController is IDMBRBController, Mortal, Validator {
     returns (bool)
   {
     require(booksCrate.getBookIsRentable(_key));
-    uint termInDays = (term.div(SECONDS_IN_DAY)).add(ADDITIONAL_DAY);
+    uint termInDays = (term.div(SECONDS_IN_DAY)).add(1);
 
     require(termInDays >= 14);
 
@@ -306,6 +305,5 @@ contract DMBRBController is IDMBRBController, Mortal, Validator {
   function() public payable {
     LogEtherReceived(msg.sender, msg.value);
   }
-
 
 }

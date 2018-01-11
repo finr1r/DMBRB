@@ -1,8 +1,7 @@
 pragma solidity 0.4.18;
 
-import "../common/Mortal.sol";
-import "../common/Validator.sol";
 import "../storage/StorageAdapter.sol";
+import "./BaseCrate.sol";
 import "./IBooksCrate.sol";
 
 /**
@@ -11,7 +10,7 @@ import "./IBooksCrate.sol";
  * @dev This is contract that manage data related to the books. Books srotes in
  *  separate crate.
  */
-contract BooksCrate is IBooksCrate, Mortal, StorageAdapter, Validator {
+contract BooksCrate is IBooksCrate, BaseCrate, StorageAdapter {
 
     StorageInterface.Book book;
     StorageInterface.Bytes32UIntMapping periodsOfBookRent;
@@ -41,11 +40,10 @@ contract BooksCrate is IBooksCrate, Mortal, StorageAdapter, Validator {
      * @param author - the author of the book
      * @param isRentable - represents whether book can be rented
      * @param price - the price of the book
-     * @param status - the current book status
      *
      * @return 'true' if book was successfully stored
      */
-    function addBook(bytes32 _key, bytes32 title, bytes32 author, bool isRentable, uint price, BookStatus status)
+    function addBook(bytes32 _key, bytes32 title, bytes32 author, bool isRentable, uint price)
         public
         returns (bool)
     {
@@ -53,9 +51,9 @@ contract BooksCrate is IBooksCrate, Mortal, StorageAdapter, Validator {
         store.set(book.author, _key, author);
         store.set(book.isRentable, _key, isRentable);
         store.set(book.price, _key, price);
-        store.set(book.status, _key, uint(status));
+        store.set(book.status, _key, uint(BookStatus.NEW_IN_SYSTEM));
         store.set(book.owner, _key, msg.sender);
-        LogAddBook(msg.sender, title, author, isRentable, price, uint(status));
+        LogAddBook(msg.sender, title, author, isRentable, price, uint(BookStatus.NEW_IN_SYSTEM));
         return true;
     }
 
@@ -88,7 +86,7 @@ contract BooksCrate is IBooksCrate, Mortal, StorageAdapter, Validator {
         return store.get(book.status, _key);
     }
 
-    function setBookStatus(bytes32 _key, BookStatus status) external returns (bool) {
+    function setBookStatus(bytes32 _key, BookStatus status) onlyByAllowed external returns (bool) {
         store.set(book.status, _key, uint(status));
         return true;
     }
@@ -98,6 +96,7 @@ contract BooksCrate is IBooksCrate, Mortal, StorageAdapter, Validator {
     }
 
     function setBookOwner(bytes32 _key, address newOwner)
+        onlyByAllowed
         addressIsNotNull(newOwner)
         external
         returns (bool)
@@ -110,7 +109,7 @@ contract BooksCrate is IBooksCrate, Mortal, StorageAdapter, Validator {
         return store.get(periodsOfBookRent, _key);
     }
 
-    function setPeriodOfBookRent(bytes32 _key, uint period) external returns (bool) {
+    function setPeriodOfBookRent(bytes32 _key, uint period) onlyByAllowed external returns (bool) {
         store.set(periodsOfBookRent, _key, period);
         return true;
     }

@@ -1,8 +1,8 @@
 pragma solidity 0.4.18;
 
-import "../common/Mortal.sol";
-import "../common/Validator.sol";
 import "../storage/StorageAdapter.sol";
+import "./BaseCrate.sol";
+import "./IDebtorsCrate.sol";
 
 /**
  * @title DebtorsCrate
@@ -11,7 +11,7 @@ import "../storage/StorageAdapter.sol";
  *  Debtors are actors that returned the book not in time, therefore they must pay
  *  penalty.
  */
-contract DebtorsCrate is Mortal, StorageAdapter, Validator {
+contract DebtorsCrate is IDebtorsCrate, BaseCrate, StorageAdapter {
 
     StorageInterface.AddressUIntMapping debtors;
 
@@ -33,6 +33,7 @@ contract DebtorsCrate is Mortal, StorageAdapter, Validator {
      * @return 'true' if operation was success
      */
     function setDebtor(address debtor, uint debtMoney)
+        onlyByAllowed
         addressIsNotNull(debtor)
         external
         returns (bool)
@@ -43,6 +44,7 @@ contract DebtorsCrate is Mortal, StorageAdapter, Validator {
     }
 
     function getDebtor(address debtor)
+        onlyByAllowed
         addressIsNotNull(debtor)
         external
         view

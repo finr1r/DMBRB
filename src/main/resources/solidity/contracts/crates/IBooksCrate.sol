@@ -10,7 +10,7 @@ contract IBooksCrate {
         NEW_IN_SYSTEM    // the book was just added to the system
     }
 
-    function addBook(bytes32 _key, bytes32 title, bytes32 author, bool isRentable, uint price, uint status) public returns (bool);
+    function addBook(bytes32 _key, bytes32 title, bytes32 author, bool isRentable, uint price) public returns (bool);
 
     function getBook(bytes32 _key) public view returns (bytes32[2], bool, uint[2], address);
 

@@ -1,8 +1,7 @@
 pragma solidity 0.4.18;
 
-import "../common/Mortal.sol";
-import "../common/Validator.sol";
 import "../storage/StorageAdapter.sol";
+import "./BaseCrate.sol";
 import "./IWithdrawalsCrate.sol";
 
 /**
@@ -12,7 +11,7 @@ import "./IWithdrawalsCrate.sol";
  *  contract defines methods that allow setting and withdraws money from the
  *  system.
  */
-contract WithdrawalsCrate is IWithdrawalsCrate, Mortal, StorageAdapter, Validator {
+contract WithdrawalsCrate is IWithdrawalsCrate, BaseCrate, StorageAdapter {
 
     StorageInterface.AddressUIntMapping pendingWithdrawals;
 
@@ -33,7 +32,8 @@ contract WithdrawalsCrate is IWithdrawalsCrate, Mortal, StorageAdapter, Validato
      *
      * @return 'true' if operation was success
      */
-    function setPendingWithdrawal(address _actor, uint _value)
+    function setPendingWithdrawals(address _actor, uint _value)
+        onlyByAllowed
         addressIsNotNull(_actor)
         external
         returns (bool)
