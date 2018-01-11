@@ -13,24 +13,21 @@ import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 
-import com.dkohut.dmbrb.wrappers.BookController;
-import com.dkohut.dmbrb.wrappers.BookStorage;
 import com.dkohut.dmbrb.wrappers.DMBRBProxy;
 
 public class DMBRBProxyTest {
 
 	private static final String MAIN_PRIVATE_KEY = "29d9b2e87e7c9e50ab355932c2aa1c2e4602523fafe0bf96ab3152b785cbf225";
 	private static final String SECOND_PRIVATE_KEY = "a91d0741be7241354ea5dfbdd2c6b05289f7d8e2ccee0f8e6a7e99eae900dba6";
-	private static final String BALANCE = "1000000000000000000000";
+	private static final String BALANCE = "100000000000000000000";
+	private static final String TEST_ADDRESS = "0x692a70d2e424a56d2c6c27aa97d1a86395877b3a";
+	private static final String TEST_NULL_ADDRESS = "0x0";
 	
 	private static Process testrpc;
-	private static String secondContractAddress;
 	
 	private Web3j web3j;
 	private Credentials credentials;
-	private DMBRBProxy proxy;
-	private BookStorage bookStorage;
-	private BookController bookController;
+	private DMBRBProxy dmbrbProxy;
 	
 	@BeforeClass
 	public static void setUpTestrpc() throws IOException {
@@ -51,101 +48,150 @@ public class DMBRBProxyTest {
 		web3j = Web3j.build(new HttpService());
 		credentials = Credentials.create(MAIN_PRIVATE_KEY);
 		
-		bookStorage = BookStorage.deploy(
+		dmbrbProxy = DMBRBProxy.deploy(
 				web3j, 
 				credentials, 
-				BookStorage.GAS_PRICE, 
-				BookStorage.GAS_LIMIT
-			).send();
-		
-		bookController = BookController.deploy(
-				web3j, 
-				credentials, 
-				BookController.GAS_PRICE, 
-				BookController.GAS_LIMIT,
-				new Address(bookStorage.getContractAddress())
-			).send();
-		
-		proxy = DMBRBProxy.deploy(
-				web3j, 
-				credentials, 
-				DMBRBProxy.GAS_PRICE,
+				DMBRBProxy.GAS_PRICE, 
 				DMBRBProxy.GAS_LIMIT
 			).send();
-		
-		secondContractAddress = BookController.deploy(
-				web3j, 
-				credentials, 
-				BookController.GAS_PRICE, 
-				BookController.GAS_LIMIT, 
-				new Address(bookStorage.getContractAddress())
-			).send().getContractAddress();
-		
-		proxy.updateContractAddress(new Address(bookController.getContractAddress())).send();
 	}
 	
 	@Test
 	public void testChangeOwner() throws Exception {
-		Address owner = proxy.owner().send();
+		Address owner = dmbrbProxy.owner().send();
 		
-		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
-		proxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);		
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
 		
-		Address newOwner = proxy.owner().send();
+		Address newOwner = dmbrbProxy.owner().send();
 		
-		assertThat(owner.getValue().toString()).as("Should have correct address").isEqualTo(credentials.getAddress());
-		assertThat(newOwner.getValue().toString()).as("Should have correct address").isEqualTo(secondCredentials.getAddress());
+		assertThat(owner.getValue().toString()).as("Should have correct owner address before changing")
+			.isEqualTo(credentials.getAddress());
+		assertThat(newOwner.getValue().toString()).as("Should have correct owner address after changing")
+			.isEqualTo(secondCredentials.getAddress());
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testChangeOwnerAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
-		proxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
 		
-		proxy.changeOwner(new Address(credentials.getAddress())).send();
+		dmbrbProxy.changeOwner(new Address(credentials.getAddress())).send();
 	}
 	
-	@Test(expected=NullPointerException.class)
+	@Test(expected=RuntimeException.class)
 	public void testKill() throws Exception {
-		proxy.kill().send();
-		
-		Address contract = proxy.activeContract().send();
-		assertThat(contract.getValue().toString()).isNullOrEmpty();
+		dmbrbProxy.kill().send();
+		Address owner = dmbrbProxy.owner().send();
+		assertThat(owner.getValue().toString()).isNotNull();
 	}
 	
 	@Test(expected=RuntimeException.class)
 	public void testKillAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
-		proxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
 		
-		proxy.kill().send();
+		dmbrbProxy.kill().send();
 	}
 	
 	@Test
-	public void testUpdateContractAddress() throws Exception {
-		Address contractAddress = proxy.activeContract().send();		
-		
-		proxy.updateContractAddress(new Address(secondContractAddress)).send();
-		
-		Address newContractAddress = proxy.activeContract().send();
-		
-		assertThat(contractAddress.getValue().toString()).as("Should have correct contract address")
-			.isEqualTo(bookController.getContractAddress());
-		assertThat(newContractAddress.getValue().toString()).as("Should have correct contract address")
-			.isEqualTo(newContractAddress.getValue().toString());
+	public void testSetWithdrawalsCrateAddress() throws Exception {
+		dmbrbProxy.setWithdrawalsCrateAddress(new Address(TEST_ADDRESS)).send();
+		Address _address = dmbrbProxy.withdrawalsCrate().send();
+		assertThat(_address.getValue().toString()).as("Should have correct address").isEqualTo(TEST_ADDRESS);
 	}
 	
 	@Test(expected=RuntimeException.class)
-	public void testUpdateContractAddressAccessException() throws Exception {
+	public void testSetWithdrawalsCrateAddressAccessException() throws Exception {
 		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
-		proxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
 		
-		proxy.updateContractAddress(new Address(secondContractAddress)).send();
+		dmbrbProxy.setWithdrawalsCrateAddress(new Address(TEST_ADDRESS)).send();
 	}
 	
 	@Test(expected=RuntimeException.class)
-	public void testUpdateContractAddressIncorrectAddressException() throws Exception {
-		proxy.updateContractAddress(new Address("0x0")).send();
+	public void testSetWithdrawalsCrateAddressIncorrectAddressException() throws Exception {
+		dmbrbProxy.setWithdrawalsCrateAddress(new Address(TEST_NULL_ADDRESS)).send();
+	}
+	
+	@Test
+	public void testSetBooksCrateAddress() throws Exception {
+		dmbrbProxy.setBooksCrateAddress(new Address(TEST_ADDRESS)).send();
+		Address _address = dmbrbProxy.booksCrate().send();
+		assertThat(_address.getValue().toString()).as("Should have correct address").isEqualTo(TEST_ADDRESS);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetBooksCrateAddressAccessException() throws Exception {
+		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		
+		dmbrbProxy.setBooksCrateAddress(new Address(TEST_ADDRESS)).send();
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetBooksCrateAddressIncorrectAddressException() throws Exception {
+		dmbrbProxy.setBooksCrateAddress(new Address(TEST_NULL_ADDRESS)).send();
+	}
+	
+	@Test
+	public void testSetDebtorsCrateAddress() throws Exception {
+		dmbrbProxy.setDebtorsCrateAddress(new Address(TEST_ADDRESS)).send();
+		Address _address = dmbrbProxy.debtorsCrate().send();
+		assertThat(_address.getValue().toString()).as("Should have correct address").isEqualTo(TEST_ADDRESS);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetDebtorsCrateAddressAccessException() throws Exception {
+		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		
+		dmbrbProxy.setDebtorsCrateAddress(new Address(TEST_ADDRESS)).send();
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetDebtorsCrateAddressIncorrectAddressException() throws Exception {
+		dmbrbProxy.setDebtorsCrateAddress(new Address(TEST_NULL_ADDRESS)).send();
+	}
+	
+	@Test
+	public void testSetControllerAddress() throws Exception {
+		dmbrbProxy.setControllerAddress(new Address(TEST_ADDRESS)).send();
+		Address _address = dmbrbProxy.dmbrbController().send();
+		assertThat(_address.getValue().toString()).as("Should have correct address").isEqualTo(TEST_ADDRESS);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetControllerAddressAccessException() throws Exception {
+		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		
+		dmbrbProxy.setControllerAddress(new Address(TEST_ADDRESS)).send();
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetControllerAddressIncorrectAddressException() throws Exception {
+		dmbrbProxy.setControllerAddress(new Address(TEST_NULL_ADDRESS)).send();
+	}
+	
+	@Test
+	public void testSetStorageAddress() throws Exception {
+		dmbrbProxy.setStorageAddress(new Address(TEST_ADDRESS)).send();
+		Address _address = dmbrbProxy.storageAddress().send();
+		assertThat(_address.getValue().toString()).as("Should have correct address").isEqualTo(TEST_ADDRESS);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetStorageAddressAccessException() throws Exception {
+		Credentials secondCredentials = Credentials.create(SECOND_PRIVATE_KEY);
+		dmbrbProxy.changeOwner(new Address(secondCredentials.getAddress())).send();
+		
+		dmbrbProxy.setStorageAddress(new Address(TEST_ADDRESS)).send();
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testSetStorageAddressIncorrectAddressException() throws Exception {
+		dmbrbProxy.setStorageAddress(new Address(TEST_NULL_ADDRESS)).send();
 	}
 	
 }

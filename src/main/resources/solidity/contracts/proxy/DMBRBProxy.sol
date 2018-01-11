@@ -1,47 +1,122 @@
 pragma solidity 0.4.18;
 
 import "../common/Mortal.sol";
-import "./IDMBRBProxy.sol";
+import "../common/Validator.sol";
 
 /**
- * @title Using for keeping address of actual version of contract.
+ * @title DMBRBProxy
  *
- * @dev This contract is a significant part of working and upgradability of system.
- *  This contract necessary such as it is keeping an address of actual version of
- *  contract. Because of the fact that a lot of vulnerabilities will be detected
- *  after the system begin to work it is necessary to give  capability replace one
- *  vulnerable contract with another one with better security.
+ * @dev This contract contains addresses of actual contracts. Contains only addresses
+ *  of major contracts.
  */
-contract DMBRBProxy is Mortal, IDMBRBProxy {
+contract DMBRBProxy is Mortal, Validator {
 
-  event LogUpdateContract(address _oldContract, address _newContract);
+    address public withdrawalsCrate;
+    address public booksCrate;
+    address public debtorsCrate;
+    address public dmbrbController;
+    address public storageAddress;
 
-  // actual contract address
-  address public activeContract;
+    event LogChangeAddress(bytes32 contractName, address oldAddress, address newAddress);
 
-  /**
-   * This function updates the old contract address with new better.
-   *
-   * @param newContract - the address of new better contract
-   *
-   * @return 'true' if address of contract was updated
-   */
-  function updateContractAddress(address newContract)
-    onlyByOwner
-    public
-    returns (bool)
-  {
-    require(address(newContract) != 0x0);
-    LogUpdateContract(activeContract, newContract);
-    activeContract = newContract;
-    return true;
-  }
+    /**
+     * @dev Setting new address of WithdrawalsCrate contract.
+     *
+     * @param _withdrawalsCrate - address of the new WithdrawalsCrate contract
+     *
+     * @return 'true' if address was successfully changed
+     */
+    function setWithdrawalsCrateAddress(address _withdrawalsCrate)
+        onlyByOwner
+        addressIsNotNull(_withdrawalsCrate)
+        public
+        returns (bool)
+    {
+        address oldAddress = withdrawalsCrate;
+        withdrawalsCrate = _withdrawalsCrate;
+        LogChangeAddress("WithdrawalsCrate", oldAddress, _withdrawalsCrate);
+        return true;
+    }
 
-  /**
-   * Contract cannot obtain money.
-   */
-  function() public payable {
-    revert();
-  }
+    /**
+     * @dev Setting new address of BooksCrate contract.
+     *
+     * @param _booksCrate - address of the new BooksCrate contract
+     *
+     * @return 'true' if address was successfully changed
+     */
+    function setBooksCrateAddress(address _booksCrate)
+        onlyByOwner
+        addressIsNotNull(_booksCrate)
+        public
+        returns (bool)
+    {
+        address oldAddress = _booksCrate;
+        booksCrate = _booksCrate;
+        LogChangeAddress("BooksCrate", oldAddress, _booksCrate);
+        return true;
+    }
+
+    /**
+     * @dev Setting new address of DebtorsCrate contract.
+     *
+     * @param _debtorsCrate - address of the new DebtorsCrate contract
+     *
+     * @return 'true' if address was successfully changed
+     */
+    function setDebtorsCrateAddress(address _debtorsCrate)
+        onlyByOwner
+        addressIsNotNull(_debtorsCrate)
+        public
+        returns (bool)
+    {
+        address oldAddress = debtorsCrate;
+        debtorsCrate = _debtorsCrate;
+        LogChangeAddress("DebtorsCrate", oldAddress, _debtorsCrate);
+        return true;
+    }
+
+    /**
+     * @dev Setting new address of DMBRBCotroller contract.
+     *
+     * @param _dmbrbController - address of the new DMBRBCotroller contract
+     *
+     * @return 'true' if address was successfully changed
+     */
+    function setControllerAddress(address _dmbrbController)
+        onlyByOwner
+        addressIsNotNull(_dmbrbController)
+        public
+        returns (bool)
+    {
+        address oldAddress = dmbrbController;
+        dmbrbController = _dmbrbController;
+        LogChangeAddress("DMBRBController", oldAddress, _dmbrbController);
+        return true;
+    }
+
+    /**
+     * @dev Setting new address of Storage contract.
+     *
+     * @param _storage - address of the Storage contract
+     *
+     * @return 'true' if address was successfully changed
+     */
+    function setStorageAddress(address _storage)
+        onlyByOwner
+        addressIsNotNull(_storage)
+        public
+        returns (bool)
+    {
+        address oldAddress = storageAddress;
+        storageAddress = _storage;
+        LogChangeAddress("Storage", oldAddress, _storage);
+        return true;
+    }
+
+
+    function() public {
+        revert();
+    }
 
 }
