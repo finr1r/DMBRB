@@ -73,6 +73,7 @@ contract DMBRBController is IDMBRBController, Mortal, Validator {
      * @return 'true' if operation was success
      */
     function setWithdrawalsCrate(address _withdrawalsCrate)
+        onlyByOwner
         addressIsNotNull(_withdrawalsCrate)
         public
         returns (bool)
@@ -91,6 +92,7 @@ contract DMBRBController is IDMBRBController, Mortal, Validator {
      * @return 'true' if operation was success
      */
     function setBooksCrate(address _booksCrate)
+        onlyByOwner
         addressIsNotNull(_booksCrate)
         public
         returns (bool)
@@ -109,6 +111,7 @@ contract DMBRBController is IDMBRBController, Mortal, Validator {
      * @return 'true' if operation was success
      */
     function setDebtorsCrate(address _debtorsCrate)
+        onlyByOwner
         addressIsNotNull(_debtorsCrate)
         public
         returns (bool)
