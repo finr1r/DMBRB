@@ -20,7 +20,16 @@ The following tools I did used:
 * Web3j (v3.2.0)
 * Testrpc (v4.1.3)
 
+## What was upgraded?
+First of all, storage contracts were fully rewritten. The idea about storage was taken from [ChronoBank](https://github.com/ChronoBank/SmartContracts) project. Now all data stored in __Storage__, but organized in _"crates"_. Access to the data is regulated by __AccessManager__.
+
+Such as all data organized in _"crates"_, the crates-contracts were created for it's managing.
+
+Proxy contract already keeping not only the address of controller but also the addresses of _"crates"_ and __Storage__ contract.
+
 ## How to test?
+__Tests for the upgraded version of the program not yet ready !__
+
 You should have [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html), [Gradle](https://gradle.org/install/), 
 [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Testrpc](https://www.npmjs.com/package/ethereumjs-testrpc).
 After installation, you need to clone this repository:
@@ -31,3 +40,4 @@ And run the tests:
 ```
 gradle test
 ```
+
