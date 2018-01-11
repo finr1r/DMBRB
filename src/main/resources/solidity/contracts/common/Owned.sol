@@ -24,7 +24,7 @@ contract Owned {
     /**
      * @dev Allows to change the owner of the contract.
      */
-    function changeOwner(address newOwner) public returns (bool) {
+    function changeOwner(address newOwner) onlyByOwner public returns (bool) {
         require(newOwner != 0x0);
         LogChangeOwner(owner, newOwner);
         owner = newOwner;

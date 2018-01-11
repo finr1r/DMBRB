@@ -35,7 +35,7 @@ import rx.functions.Func1;
  * <p>Generated with web3j version 3.2.0.
  */
 public class Owned extends Contract {
-    private static final String BINARY = "0x6060604052341561000f57600080fd5b336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506102cc8061005e6000396000f30060606040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680638da5cb5b14610051578063a6f9dae1146100a6575b600080fd5b341561005c57600080fd5b6100646100f7565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34156100b157600080fd5b6100dd600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061011c565b604051808215151515815260200191505060405180910390f35b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614151561017957600080fd5b60008273ffffffffffffffffffffffffffffffffffffffff161415151561019f57600080fd5b7f96b36bedce75759b139551b10b3d2e1e863dbbfbdc30f9f9e374bb24431d5da26000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1683604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019250505060405180910390a1816000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550600190509190505600a165627a7a723058206e25ce9f7d4632b00db4971699b0d19930e10dcdfd36686b8330727b8e8c5d4c0029";
+    private static final String BINARY = "0x6060604052341561000f57600080fd5b336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555061028f8061005e6000396000f30060606040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680638da5cb5b14610051578063a6f9dae1146100a6575b600080fd5b341561005c57600080fd5b6100646100f7565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34156100b157600080fd5b6100dd600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061011c565b604051808215151515815260200191505060405180910390f35b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614151561017957600080fd5b60008273ffffffffffffffffffffffffffffffffffffffff161415151561019f57600080fd5b8173ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f96b36bedce75759b139551b10b3d2e1e863dbbfbdc30f9f9e374bb24431d5da260405160405180910390a3816000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550600190509190505600a165627a7a7230582084efe4c4f113c6d4e215668be5822172cb23bebf133ac7e3eeeadce0e479d5ea0029";
 
     protected static final HashMap<String, String> _addresses;
 
@@ -53,14 +53,14 @@ public class Owned extends Contract {
 
     public List<LogChangeOwnerEventResponse> getLogChangeOwnerEvents(TransactionReceipt transactionReceipt) {
         final Event event = new Event("LogChangeOwner", 
-                Arrays.<TypeReference<?>>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}));
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}),
+                Arrays.<TypeReference<?>>asList());
         List<EventValues> valueList = extractEventParameters(event, transactionReceipt);
         ArrayList<LogChangeOwnerEventResponse> responses = new ArrayList<LogChangeOwnerEventResponse>(valueList.size());
         for (EventValues eventValues : valueList) {
             LogChangeOwnerEventResponse typedResponse = new LogChangeOwnerEventResponse();
-            typedResponse.oldOwner = (Address) eventValues.getNonIndexedValues().get(0);
-            typedResponse.newOwner = (Address) eventValues.getNonIndexedValues().get(1);
+            typedResponse.previousOwner = (Address) eventValues.getIndexedValues().get(0);
+            typedResponse.newOwner = (Address) eventValues.getIndexedValues().get(1);
             responses.add(typedResponse);
         }
         return responses;
@@ -68,8 +68,8 @@ public class Owned extends Contract {
 
     public Observable<LogChangeOwnerEventResponse> logChangeOwnerEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         final Event event = new Event("LogChangeOwner", 
-                Arrays.<TypeReference<?>>asList(),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}));
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}),
+                Arrays.<TypeReference<?>>asList());
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
         filter.addSingleTopic(EventEncoder.encode(event));
         return web3j.ethLogObservable(filter).map(new Func1<Log, LogChangeOwnerEventResponse>() {
@@ -77,8 +77,8 @@ public class Owned extends Contract {
             public LogChangeOwnerEventResponse call(Log log) {
                 EventValues eventValues = extractEventParameters(event, log);
                 LogChangeOwnerEventResponse typedResponse = new LogChangeOwnerEventResponse();
-                typedResponse.oldOwner = (Address) eventValues.getNonIndexedValues().get(0);
-                typedResponse.newOwner = (Address) eventValues.getNonIndexedValues().get(1);
+                typedResponse.previousOwner = (Address) eventValues.getIndexedValues().get(0);
+                typedResponse.newOwner = (Address) eventValues.getIndexedValues().get(1);
                 return typedResponse;
             }
         });
@@ -124,7 +124,7 @@ public class Owned extends Contract {
     }
 
     public static class LogChangeOwnerEventResponse {
-        public Address oldOwner;
+        public Address previousOwner;
 
         public Address newOwner;
     }

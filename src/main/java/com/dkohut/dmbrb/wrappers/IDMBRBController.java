@@ -8,6 +8,7 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -25,7 +26,7 @@ import org.web3j.tx.TransactionManager;
  *
  * <p>Generated with web3j version 3.2.0.
  */
-public class IBookController extends Contract {
+public class IDMBRBController extends Contract {
     private static final String BINARY = "0x";
 
     protected static final HashMap<String, String> _addresses;
@@ -34,11 +35,11 @@ public class IBookController extends Contract {
         _addresses = new HashMap<>();
     }
 
-    protected IBookController(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IDMBRBController(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    protected IBookController(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+    protected IDMBRBController(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
@@ -46,6 +47,22 @@ public class IBookController extends Contract {
         Function function = new Function(
                 "payDebt", 
                 Arrays.<Type>asList(), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function, weiValue);
+    }
+
+    public RemoteCall<TransactionReceipt> bookReturn(Bytes32 _key) {
+        Function function = new Function(
+                "bookReturn", 
+                Arrays.<Type>asList(_key), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteCall<TransactionReceipt> buyBook(Bytes32 _key, BigInteger weiValue) {
+        Function function = new Function(
+                "buyBook", 
+                Arrays.<Type>asList(_key), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
@@ -58,60 +75,60 @@ public class IBookController extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> buyBook(Uint256 id, BigInteger weiValue) {
-        Function function = new Function(
-                "buyBook", 
-                Arrays.<Type>asList(id), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
-    }
-
-    public RemoteCall<TransactionReceipt> changeBookStorage(Address _bookStorage) {
-        Function function = new Function(
-                "changeBookStorage", 
-                Arrays.<Type>asList(_bookStorage), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteCall<TransactionReceipt> bookReturn(Uint256 id) {
-        Function function = new Function(
-                "bookReturn", 
-                Arrays.<Type>asList(id), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteCall<TransactionReceipt> bookEarlyReturn(Uint256 id) {
+    public RemoteCall<TransactionReceipt> bookEarlyReturn(Bytes32 _key) {
         Function function = new Function(
                 "bookEarlyReturn", 
-                Arrays.<Type>asList(id), 
+                Arrays.<Type>asList(_key), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> rentBook(Uint256 id, Uint256 term, BigInteger weiValue) {
+    public RemoteCall<TransactionReceipt> setWithdrawalsCrate(Address _withdrawalsCrate) {
+        Function function = new Function(
+                "setWithdrawalsCrate", 
+                Arrays.<Type>asList(_withdrawalsCrate), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteCall<TransactionReceipt> rentBook(Bytes32 _key, Uint256 term, BigInteger weiValue) {
         Function function = new Function(
                 "rentBook", 
-                Arrays.<Type>asList(id, term), 
+                Arrays.<Type>asList(_key, term), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public static RemoteCall<IBookController> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return deployRemoteCall(IBookController.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
+    public RemoteCall<TransactionReceipt> setDebtorsCrate(Address _debtorsCrate) {
+        Function function = new Function(
+                "setDebtorsCrate", 
+                Arrays.<Type>asList(_debtorsCrate), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
     }
 
-    public static RemoteCall<IBookController> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return deployRemoteCall(IBookController.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, "");
+    public RemoteCall<TransactionReceipt> setBooksCrate(Address _booksCrate) {
+        Function function = new Function(
+                "setBooksCrate", 
+                Arrays.<Type>asList(_booksCrate), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
     }
 
-    public static IBookController load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IBookController(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    public static RemoteCall<IDMBRBController> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return deployRemoteCall(IDMBRBController.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
     }
 
-    public static IBookController load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return new IBookController(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+    public static RemoteCall<IDMBRBController> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return deployRemoteCall(IDMBRBController.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, "");
+    }
+
+    public static IDMBRBController load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IDMBRBController(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    }
+
+    public static IDMBRBController load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return new IDMBRBController(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
     protected String getStaticDeployedAddress(String networkId) {
